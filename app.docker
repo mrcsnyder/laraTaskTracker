@@ -1,0 +1,10 @@
+FROM php:7-fpm
+
+# mysql
+RUN apt-get update && apt-get install -y default-mysql-client \
+    && docker-php-ext-install pdo_mysql
+
+#copy php.ini into docker container from laravel project since ini settings are cascading... neat trick I learned
+COPY config/php.ini /usr/local/etc/php/
+
+WORKDIR /var/www
