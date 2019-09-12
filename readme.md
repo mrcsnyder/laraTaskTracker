@@ -15,6 +15,7 @@ DB_DATABASE=timeKeeper
 DB_USERNAME=root
 DB_PASSWORD=secret
 ```
+**(After the containers are buillt (Step 3), then you should be able to connect to the database with MySQLWorkbench or a similar MySQL GUI).
 
 To finish off your .env file run the following CLI command at the root of your project to set your APP_KEY environmental variable:
 
