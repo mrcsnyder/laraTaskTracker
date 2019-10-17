@@ -1,7 +1,7 @@
 ## Laravel 5.8 API task-management project
 This is a simple task management Laravel 5.8 project that was created to test populating a database with API endpoints.  This application makes use of a custom artisan command that can be called at the root of the project to populate the appropriate database tables with the data from API endpoints.  This project utilizes Docker Compose to build its web, app, database, and optional (unused in this project) Redis container.  Please follow the steps below to get this project up and running in your local development environment!
 
-## Endpoint JSON structure example...
+## Examples of the Endpoints JSON data structures...
 
 ### Users:
 ```
