@@ -25,7 +25,6 @@ This is a simple task management Laravel 5.8 project that was created to test po
   }
 ]
 ```
-
 ### Issues:
 ```
 [
