@@ -1,6 +1,59 @@
 ## Laravel 5.8 API task-management project
 This is a simple task management Laravel 5.8 project that was created to test populating a database with API endpoints.  This application makes use of a custom artisan command that can be called at the root of the project to populate the appropriate database tables with the data from API endpoints.  This project utilizes Docker Compose to build its web, app, database, and optional (unused in this project) Redis container.  Please follow the steps below to get this project up and running in your local development environment!
 
+## Endpoint JSON structure example...
+
+### Users:
+```
+[
+  {
+    "id": 1,
+    "name": "Matilde Hagenes",
+    "email": "wilson41@hotmail.com"
+  }
+]
+```
+
+### Timelogs:
+```
+[
+  {
+    "id": 1,
+    "issue_id": 1,
+    "user_id": 3,
+    "seconds_logged": 24573
+  }
+]
+```
+
+### Issues:
+```
+[
+
+  {
+    "id": 1,
+    "code": "repudiandae-rerum-vero-est-explicabo-fugit-eum-tenetur-aut",
+    "components": [
+      2,
+      3
+    ]
+  }
+
+]
+```
+### Components:
+```
+[
+
+  {
+    "id": 1,
+    "name": "DEVOPS"
+  }
+
+]
+
+```
+
 ### Step 1.  Clone the repository
 Clone this repository to your local development environment.
 
@@ -82,4 +135,3 @@ To run try out Laravel 5.8’s built in PHPUnit test functionality you can do so
 
 ```./vendor/bin/phpunit```
 
-Thank you for your patience and time!  Have a great day! :)

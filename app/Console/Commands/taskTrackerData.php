@@ -2,19 +2,12 @@
 
 namespace App\Console\Commands;
 
-
+use App\Repositories\Interfaces\ComponentIssueRepositoryInterface;
+use App\Repositories\Interfaces\ComponentRepositoryInterface;
+use App\Repositories\Interfaces\IssueRepositoryInterface;
+use App\Repositories\Interfaces\TimelogRepositoryInterface;
+use App\Repositories\Interfaces\UserRespositoryInterface;
 use Illuminate\Console\Command;
-
-use App\Component;
-
-use App\Issue;
-
-use App\ComponentIssue;
-
-use App\User;
-
-use App\Timelog;
-
 use GuzzleHttp\Client;
 
 class taskTrackerData extends Command
@@ -26,6 +19,10 @@ class taskTrackerData extends Command
      */
     protected $signature = 'add:data';
 
+    //constant global endpoint_url prefix...
+    protected $endpoint_url = 'https://my-json-server.typicode.com/bomoko/algm_assessment/';
+
+
     /**
      * The console command description.
      *
@@ -33,10 +30,11 @@ class taskTrackerData extends Command
      */
     protected $description = 'Add Components, Issues (and relate them), Timelogs, and Users from the Endpoint.';
 
+
     /**
      * Create a new command instance.
      *
-     * @return void
+     * @param ComponentRepositoryInterface $components
      */
     public function __construct()
     {
@@ -46,171 +44,50 @@ class taskTrackerData extends Command
     /**
      * Execute the console command.
      *
+     * @param ComponentRepositoryInterface $components
+     * @param IssueRepositoryInterface $issues
+     * @param ComponentIssueRepositoryInterface $component_issue
+     * @param UserRespositoryInterface $users
+     * @param TimelogRepositoryInterface $timelogs
      * @return mixed
      */
-    public function handle()
+    public function handle(ComponentRepositoryInterface $components,
+                           IssueRepositoryInterface $issues,
+                           ComponentIssueRepositoryInterface $component_issue,
+                           UserRespositoryInterface $users,
+                           TimelogRepositoryInterface $timelogs
+                            )
     {
 
-        //try/catch to call Components endpoint and populate database
-        try{
+        //store components as string...
+        $compStr = 'components';
 
-            // components endpoint...
-            $url = 'https://my-json-server.typicode.com/bomoko/algm_assessment/components';
+        //Add Components by passing $compStr and ComponentRepositoryInterface object to tryCatcher method...
+        $this->tryCatcher($compStr, $components);
 
-            //pass in the endpoint URL and store Guzzle endpoint GET request results...
-            $results = $this->guzzler($url);
+        //store issues as string...
+        $IshStr = 'issues';
 
-            //iterate through each response item and store in the components table by creating a new Component...
-            foreach($results as $item) {
+        //Add Issues by passing $IshStr and IssueRepositoryInterface object to tryCatcher method...
+        $this->tryCatcher($IshStr, $issues);
 
-                // instantiate new Component...
-                $component = new Component;
+        $compIshStr = 'component_issue';
 
-                // set the appropriate data into appropriate field in components table...
-               $component->name = $item['name'];
+        //relate issues to appropriate component(s) by passing compIshStr and ComponentIssueRepositoryInterface object to tryCatcher method...
+        $this->tryCatcher($compIshStr, $component_issue);
 
-               //save component record to the components table...
-               $component->save();
+        //store users as string...
+        $usrStr = 'users';
 
-            }
+        //Add Users by passing $usrStr and UserRepositoryInterface object to tryCatcher method...
+        $this->tryCatcher($usrStr, $users);
 
-            // print out success message to CLI...
-            echo"Components added successfully!"."\n";
+        //store timelogs as string...
 
-        }
+        $tLogStr = 'timelogs';
 
-        //if endpoint is incorrect or unreachable... then it will echo this to the CLI when attempting to run the add:data artisan command...
-        catch(\Exception $ex) {
+        $this->tryCatcher($tLogStr, $timelogs);
 
-            echo "The Components endpoint could not be reached.  Try again buddy. :("."\n";
-
-        }
-
-
-        //try/catch to call Issues endpoint and populate database
-        try{
-
-            // issues endpoint...
-             $url = 'https://my-json-server.typicode.com/bomoko/algm_assessment/issues';
-
-            //pass in the endpoint URL and store Guzzle endpoint GET request results...
-            $results = $this->guzzler($url);
-
-            //iterate through each response item and store in the Issues table by creating a new Issue...
-            foreach($results as $item) {
-
-                // instantiate new Issue...
-                $issue = new Issue;
-
-                //set the appropriate data into appropriate field in issues table...
-                $issue->code = $item['code'];
-
-                //save issue record to the issues table...
-                //saving also gives us the ability to see ID of this created record which we will need in next loop...
-                $issue->save();
-
-
-                //iterate through the Issue endpoint's components...
-                foreach($item['components'] as $component) {
-
-                    // instantiate a new ComponentIssue (pivot table model)...
-                    $component_issue = new ComponentIssue();
-
-                    //set the values of each component_issue to the appropriate component id and issue id...
-                    $component_issue->component_id = $component;
-                    $component_issue->issue_id = $issue->id;
-
-                    // save the related records to the pivot table...
-                    $component_issue->save();
-                }
-
-
-            }
-
-            // print out success message to CLI...
-            echo "Issues added and related to Components successfully!"."\n";
-
-        }
-
-            //if endpoint is incorrect or unreachable... then it will echo this to the CLI when attempting to run the add:data artisan command...
-        catch(\Exception $ex) {
-
-            echo "The Issues endpoint could not be reached.  Try again buddy. :("."\n";
-
-        }
-
-
-        //try/catch to call Users endpoint and populate database
-        try{
-
-            // users endpoint...
-            $url = 'https://my-json-server.typicode.com/bomoko/algm_assessment/users';
-
-            //pass in the endpoint URL and store Guzzle endpoint GET request results...
-            $results = $this->guzzler($url);
-
-            //iterate through each response item and store in the Users table by creating a new User...
-            foreach($results as $item) {
-
-                // instantiate new User...
-                $user = new User;
-
-                //set the appropriate data into appropriate field in users table...
-                $user->name = $item['name'];
-                $user->email = $item['email'];
-
-                //save user record to the users table...
-                $user->save();
-            }
-
-            // print out success message to CLI...
-            echo "Users added successfully!"."\n";
-        }
-
-            //if endpoint is incorrect or unreachable... then it will echo this to the CLI when attempting to run the add:data artisan command...
-        catch(\Exception $ex) {
-
-            echo "The Users endpoint could not be reached.  Try again buddy. :("."\n";
-
-        }
-
-
-        //try/catch to call Timelogs endpoint and populate database
-        try{
-
-            // timelogs endpoint...
-            $url = 'https://my-json-server.typicode.com/bomoko/algm_assessment/timelogs';
-
-            //pass in the endpoint URL and store Guzzle endpoint GET request results...
-            $results = $this->guzzler($url);
-
-            //iterate through each response item and store in the Users table by creating a new User...
-            foreach($results as $item) {
-
-                // instantiate new Timelog...
-                $timelog = new Timelog;
-
-                //set the appropriate data into appropriate field in timelogs table...
-                $timelog->issue_id = $item['issue_id'];
-                $timelog->user_id = $item['user_id'];
-                $timelog->seconds_logged = $item['seconds_logged'];
-
-                //save timelog record to the timelogs table...
-                $timelog->save();
-
-            }
-            // print out success message to CLI...
-            echo "Timelogs added successfully!"."\n";
-        }
-
-            //if endpoint is incorrect or unreachable... then it will echo this to the CLI when attempting to run the add:data artisan command...
-        catch(\Exception $ex) {
-
-
-            echo "The Timelogs endpoint could not be reached.  Try again buddy. :("."\n";
-
-
-        }
 
     }
 
@@ -233,5 +110,51 @@ class taskTrackerData extends Command
         return $results;
 
     }
+
+
+    //custom try catch method to DRY things up...
+    public function tryCatcher($endpoint, $interface) {
+
+        try {
+
+            if($endpoint == 'component_issue') {
+                //append issue to endpoint in this case...
+                $endAppend = $this->endpoint_url.'issues';
+            }
+            else {
+                //append appropriate name to endpoint...
+                $endAppend = $this->endpoint_url.$endpoint;
+            }
+
+            //get Guzzle results from endpoint passed into method...
+            $resultsEndpoint = $this->guzzler($endAppend);
+
+        }
+
+        catch(\Exception $ex) {
+
+            echo "Something went wrong reaching the ".ucfirst($endpoint). "\n";
+
+        }
+
+        try {
+
+            $interface->populate($resultsEndpoint);
+
+            // print out appropriate success message to CLI...
+            echo ucfirst($endpoint)." added successfully!"."\n";
+
+        }
+
+        catch(\Exception $ex) {
+
+            echo "Something went wrong with the interface ".$interface. "\n";
+
+        }
+
+
+    }
+
+
 
 }
